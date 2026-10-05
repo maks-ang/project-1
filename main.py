@@ -1,11 +1,12 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
 
 @app.get("/")
 def home():
-    return ("Hello World!")
+    return ("new text")
 
 @app.get("/cat")
 async def get_cat():
