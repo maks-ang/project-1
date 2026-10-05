@@ -1,0 +1,38 @@
+# Python: кэш и скомпилированные файлы
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+
+# Переменные окружения и секреты
+.env
+.env.*
+!.env.example
+
+# Тесты, покрытие и кэш инструментов
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Сборка и метаданные пакетов
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Логи
+*.log
+
+# IDE и ОС
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
