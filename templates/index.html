@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заявка в магазин</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<h1>Оставить заявку</h1>
+<form action="/applications" method="post">
+    <label for="customer_name">Имя</label>
+    <input type="text" id="customer_name" name="customer_name">
+
+    <label for="phone">Телефон</label>
+    <input type="tel" id="phone" name="phone">
+
+    <label for="order_details">Заказ</label>
+    <textarea id="order_details" name="order_details"></textarea>
+
+    <button type="submit">Отправить заявку</button>
+</form>
+
+</body>
+</html>
