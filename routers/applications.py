@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, Form
+from fastapi import Depends, APIRouter, Form, HTTPException, Path
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -21,3 +21,11 @@ def create_application(
     db.commit()
     db.refresh(application)
     return RedirectResponse("/", status_code=303)
+
+
+@router.get("/applications/{application_id}")
+def get_aplication(application_id: int = Path(gt=0), db: Session = Depends(get_db)):
+    application = db.get(Application, application_id)
+    if application is None:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    return {"id": application.id, "customer_name": application.customer_name, "phone": application.phone, "order_details": application.order_details}
