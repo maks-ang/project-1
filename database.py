@@ -9,8 +9,10 @@ DATABASE_URL = os.getenv(
     "postgresql+psycopg://n0tthesame@localhost:5432/project1",
 )
 
+
 class Base(DeclarativeBase):
     pass
+
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)

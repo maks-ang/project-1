@@ -36,3 +36,6 @@ dist/
 .vscode/
 .DS_Store
 Thumbs.db
+
+contract
+pydantic_train.py

@@ -1,6 +1,23 @@
-{
-  "id": 1,
-  "customer_name": "Макс",
-  "phone": "+38200000000",
-  "order_details": "Учебная заявка"
-}
+[
+  {
+    "id": 1,
+    "customer_name": "Макс",
+    "phone": "123",
+    "order_details": "Первая заявка",
+    "status": "processing"
+  },
+  {
+    "id": 2,
+    "customer_name": "Моск",
+    "phone": "456",
+    "order_details": "Вторая заявка",
+    "status": "done"
+  },
+  {
+    "id": 3,
+    "customer_name": "Жаргал",
+    "phone": "789",
+    "order_details": "Третья заявка",
+    "status": "new"
+  }
+]
