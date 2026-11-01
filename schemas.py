@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
 
-class ApplicationCreate(BaseModel):
+class CreateSchema(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
     customer_name: str = Field(min_length=1, max_length=20)
     phone: str = Field(min_length=1, max_length=20)
@@ -9,7 +9,7 @@ class ApplicationCreate(BaseModel):
     order_details: str = Field(min_length=1)
 
 
-class ApplicationRead(BaseModel):
+class ReadSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     customer_name: str
