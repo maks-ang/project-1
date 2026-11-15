@@ -42,7 +42,7 @@ def test_get_applications(client):
 
     assert response.status_code == 200
     assert response.json() == {"id": application_id, "customer_name": "Max", "phone": "123",
-                               "order_details": "test text for testing"}
+                               "order_details": "test text for testing", "status": "new"}
 
 
 def test_get_applications_not_found(client):
@@ -247,8 +247,8 @@ def test_application_default_limit(client, db_session):
 
 
 @pytest.mark.parametrize("params, field", [
-                             ({"limit": 0}, "limit"), ({"limit": 101}, "limit"), ({"limit": "abc"}, "limit"), (
-                                     {"status": "random"}, "status"), ({"order": "random"}, "order")])
+    ({"limit": 0}, "limit"), ({"limit": 101}, "limit"), ({"limit": "abc"}, "limit"), (
+            {"status": "random"}, "status"), ({"order": "random"}, "order")])
 def test_application_error_params(client, params, field):
     response = client.get("/applications", params=params)
 
@@ -289,16 +289,10 @@ def test_application_filter_status_no_change(client, db_session):
     assert get_new_ids == post_new_ids
 
 
-def test_application_filter_limit_no_change(client):
-    payload_1 = {"customer_name": "Max", "phone": "123", "email": "blabla@gmail.com",
-                 "order_details": "test text for testing"}
-    payload_2 = {"customer_name": "Mosk", "phone": "789414", "email": "aaa@gmail.com",
-                 "order_details": "new mac"}
-    payload_3 = {"customer_name": "user", "phone": "456", "email": "npc@gmail.com",
-                 "order_details": "aoaoaoa"}
-    create_response_1 = client.post("/applications", json=payload_1)
-    create_response_2 = client.post("/applications", json=payload_2)
-    create_response_3 = client.post("/applications", json=payload_3)
+def test_application_filter_limit_no_change(client, application_payload):
+    create_response_1 = client.post("/applications", json=application_payload)
+    create_response_2 = client.post("/applications", json=application_payload)
+    create_response_3 = client.post("/applications", json=application_payload)
     response = client.get("/applications", params={"limit": 2})
 
     assert response.status_code == 200
@@ -316,3 +310,112 @@ def test_application_filter_limit_no_change(client):
     get_new_ids = [item["id"] for item in new_response.json()]
 
     assert get_new_ids == post_new_ids
+
+
+def test_patch_status_new(client, application_status):
+    application = application_status(status="new")
+    response = client.patch(f"/applications/{application.id}/status", json={"status": "processing"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "processing"
+    assert response.json()["id"] == application.id
+
+    get_response = client.get(f"/applications/{application.id}")
+
+    assert get_response.status_code == 200
+    assert get_response.json()["status"] == "processing"
+
+
+def test_patch_status_processing(client, application_status):
+    application = application_status(status="processing")
+    response = client.patch(f"/applications/{application.id}/status", json={"status": "done"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "done"
+    assert response.json()["id"] == application.id
+
+    get_response = client.get(f"/applications/{application.id}")
+
+    assert get_response.status_code == 200
+    assert get_response.json()["status"] == "done"
+
+
+def test_patch_status_repeat(client, application_status):
+    application = application_status(status="processing")
+    response = client.patch(f"/applications/{application.id}/status", json={"status": "processing"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "processing"
+    assert response.json()["id"] == application.id
+
+    get_response = client.get(f"/applications/{application.id}")
+
+    assert get_response.status_code == 200
+    assert get_response.json()["status"] == "processing"
+
+
+@pytest.mark.parametrize('status, new_status', [
+    ("new", "done"),
+    ("processing", "new"),
+    ("done", "new"),
+    ("done", "processing"),
+])
+def test_patch_status_error(client, application_status, status, new_status):
+    application = application_status(status=status)
+    response = client.patch(f"/applications/{application.id}/status", json={'status': new_status})
+
+    assert response.status_code == 409
+    assert response.json()['detail'] == 'Недопустимая смена статуса'
+
+    get_response = client.get(f"/applications/{application.id}")
+
+    assert get_response.status_code == 200
+    assert get_response.json()["status"] == status
+
+
+def test_patch_status_no_application(client, application_status):
+    response = client.patch(f"/applications/{1}/status", json={"status": "new"})
+
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Заявка не найдена'
+
+
+def test_patch_status_random(client, application_status):
+    application = application_status(status="new")
+    response = client.patch(f"/applications/{application.id}/status", json={"status": "banana"})
+
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['loc'] == ['body', 'status']
+
+
+def test_patch_no_status(client, application_status):
+    application = application_status(status="new")
+    response = client.patch(f"/applications/{application.id}/status", json={})
+
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['type'] == 'missing'
+
+
+def test_patch_status_none(client, application_status):
+    application = application_status(status="new")
+    response = client.patch(f"/applications/{application.id}/status", json={'status': None})
+
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['loc'] == ['body', 'status']
+
+
+def test_patch_status_more_than_one(client, application_status):
+    application = application_status(status="new")
+    response = client.patch(f"/applications/{application.id}/status",
+                            json={'status': 'processing', 'customer_name': 'Max'})
+
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['type'] == 'extra_forbidden'
+
+
+@pytest.mark.parametrize('id', [0, -1, 'abc'])
+def test_patch_status_incorrect_id(client, application_status, id):
+    response = client.patch(f"/applications/{id}/status", json={'status': 'processing'})
+
+    assert response.status_code == 422
+    assert response.json()['detail'][0]['loc'] == ['path', 'application_id']

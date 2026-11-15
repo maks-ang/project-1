@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from typing import Literal
 
 
 class CreateSchema(BaseModel):
@@ -15,4 +16,9 @@ class ReadSchema(BaseModel):
     customer_name: str
     phone: str
     order_details: str
+    status: Literal["new", "processing", "done"]
 
+
+class StatusUpdateSchema(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    status: Literal["new", "processing", "done"]

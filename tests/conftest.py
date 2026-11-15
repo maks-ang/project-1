@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from main import app
+from model import Application
 
 
 @pytest.fixture(scope="session")
@@ -56,3 +57,30 @@ def client(db_session):
     finally:
         app.dependency_overrides.clear()
         app.dependency_overrides.update(previous_overrides)
+
+
+@pytest.fixture
+def application_payload():
+    return {"customer_name": "Max", "phone": "123", "email": "blabla@gmail.com",
+            "order_details": "test text for testing"}
+
+
+@pytest.fixture
+def create_application(client, application_payload):
+    response = client.post("/applications", json=application_payload)
+
+    assert response.status_code == 201
+    return response.json()
+
+
+@pytest.fixture
+def application_status(db_session):
+    def create_application(**overrides):
+        payload = {"customer_name": "Max", "phone": "123", "email": "blabla@gmail.com",
+                 "order_details": "test text for testing"}
+        payload.update(overrides)
+        application = Application(**payload)
+        db_session.add(application)
+        db_session.flush()
+        return application
+    return create_application

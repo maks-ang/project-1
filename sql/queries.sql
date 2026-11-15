@@ -1,0 +1,12 @@
+SELECT id, customer_name, status FROM applications ORDER BY id ASC;
+SELECT * FROM applications ORDER BY created_at DESC, id DESC LIMIT 3;
+SELECT * FROM applications WHERE status = 'new';
+SELECT * FROM applications WHERE status = 'new' or status = 'processing';
+SELECT * FROM applications WHERE status = 'new' ORDER BY created_at DESC, id DESC LIMIT 2;
+SELECT * FROM applications WHERE email IS NULL;
+SELECT * FROM applications WHERE email IS NOT NULL AND email <> '';
+SELECT * FROM applications WHERE email = '';
+SELECT * FROM applications WHERE email IS NULL OR email = '';
+SELECT * FROM applications WHERE customer_name = 'Макс';
+SELECT * FROM applications WHERE id > 3;
+SELECT * FROM applications WHERE status = 'random';
