@@ -77,10 +77,25 @@ def create_application(client, application_payload):
 def application_status(db_session):
     def create_application(**overrides):
         payload = {"customer_name": "Max", "phone": "123", "email": "blabla@gmail.com",
-                 "order_details": "test text for testing"}
+                   "order_details": "test text for testing"}
         payload.update(overrides)
         application = Application(**payload)
         db_session.add(application)
         db_session.flush()
         return application
+
     return create_application
+
+
+@pytest.fixture
+def session():
+    engine = create_engine('postgresql+psycopg://n0tthesame@localhost:5432/sql_practice')
+    with engine.connect() as connection:
+        transaction = connection.begin()
+        session = Session(bind=connection, join_transaction_mode="create_savepoint")
+        try:
+            yield session
+        finally:
+            session.close()
+            transaction.rollback()
+    engine.dispose()
