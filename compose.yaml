@@ -1,23 +1,38 @@
 services:
-  db:
+  database:
     image: postgres:18
     environment:
       POSTGRES_DB: project1
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "project1"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql
-
-  app:
+      - db:/var/lib/postgresql
+  migrate:
     build: .
     environment:
-      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/project1
-    ports:
-      - 8000:8000
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@database:5432/project1
     depends_on:
-      - db
+      database:
+        condition: service_healthy
+    command: ["/app/.venv/bin/alembic", "upgrade", "head"]
+  application:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@database:5432/project1
+
+    ports:
+      - "8080:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
-  postgres_data:
+  db:

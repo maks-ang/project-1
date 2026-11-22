@@ -9,11 +9,11 @@ from sqlalchemy.orm import Session
 from database import get_db
 from main import app
 from model import Application
-
+from orm_practice.models import User, Event
 
 @pytest.fixture(scope="session")
 def test_engine():
-    database_url = os.environ["TEST_DATABASE_URL"]
+    database_url = os.environ.setdefault("TEST_DATABASE_URL", "postgresql+psycopg://n0tthesame@localhost:5432/test_db")
 
     if make_url(database_url).database != "test_db":
         raise RuntimeError("Тесты должны использовать базу test_db")
@@ -88,14 +88,16 @@ def application_status(db_session):
 
 
 @pytest.fixture
-def session():
-    engine = create_engine('postgresql+psycopg://n0tthesame@localhost:5432/sql_practice')
-    with engine.connect() as connection:
-        transaction = connection.begin()
-        session = Session(bind=connection, join_transaction_mode="create_savepoint")
-        try:
-            yield session
-        finally:
-            session.close()
-            transaction.rollback()
-    engine.dispose()
+def user(db_session):
+    user = User(name="Тест", email="test@example.com")
+    db_session.add(user)
+    db_session.flush()
+    return user
+
+
+@pytest.fixture
+def event(db_session):
+    event = Event(title="Тестовое событие", seats_left=2)
+    db_session.add(event)
+    db_session.flush()
+    return event
