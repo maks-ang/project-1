@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заявка в магазин</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<h1>Оставить заявку</h1>
+<form id="application-form" action="/applications" method="post">
+    <label for="customer_name">Имя</label>
+    <input type="text" id="customer_name" name="customer_name">
+
+    <label for="phone">Телефон</label>
+    <input type="tel" id="phone" name="phone">
+
+    <label for="order_details">Заказ</label>
+    <textarea id="order_details" name="order_details"></textarea>
+
+    <button type="submit">Отправить заявку</button>
+</form>
+<p id="result"></p>
+<script>
+    const form = document.getElementById("application-form");
+    const result = document.getElementById("result");
+    const button = form.querySelector('button[type="submit"]');
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        button.disabled = true;
+        result.textContent = "Отправляем заявку…";
+
+        const fields = new FormData(form);
+        const payload = {
+            customer_name: fields.get("customer_name"),
+            phone: fields.get("phone"),
+            order_details: fields.get("order_details"),
+        };
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (response.status === 201) {
+                const application = await response.json();
+                result.textContent = `Заявка №${application.id} создана.`;
+                form.reset();
+            } else if (response.status === 422) {
+                const error = await response.json();
+
+                const names = {
+                    customer_name: "Имя",
+                    phone: "Телефон",
+                    order_details: "Описание заказа",
+                    email: "Email",
+                };
+
+                const invalidFields = [
+                    ...new Set(
+                        error.detail.map((item) => {
+                            const field = item.loc[item.loc.length - 1];
+                            return names[field] || "Данные заявки";
+                        })
+                    ),
+                ];
+
+                result.textContent =
+                    `Проверьте поля: ${invalidFields.join(", ")}. ` +
+                    "Они должны быть заполнены и соответствовать ограничениям.";
+            } else {
+                result.textContent =
+                    "Не удалось создать заявку. Попробуйте позже.";
+            }
+        } catch {
+            result.textContent =
+                "Не удалось получить ответ сервера. " +
+                "Проверьте соединение. Перед повторной отправкой учтите: " +
+                "заявка могла сохраниться.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

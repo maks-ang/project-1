@@ -1,40 +1,23 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
-from database import Base, engine, SessionLocal
-from model import Application
-from schemas import ApplicationCreate
+from routers.applications import router
 
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+app.include_router(router)
 
-
-Base.metadata.create_all(bind=engine)
-
-
-@app.post("/applications")
-def create_application(
-        application_data: ApplicationCreate,
-        db: Session = Depends(get_db),
-):
-    application = Application(**application_data.model_dump())
-    db.add(application)
-    db.commit()
-    db.refresh(application)
-    return application
+templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/")
-def home():
-    return ("new text")
+def home(request: Request):
+    return templates.TemplateResponse(request=request, name="index.html", context={})
+
 
 @app.get("/cat")
 async def get_cat():
