@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from main import app
 from model import Application
-from orm_practice.models import User, Event
+
 
 @pytest.fixture(scope="session")
 def test_engine():
@@ -88,16 +88,7 @@ def application_status(db_session):
 
 
 @pytest.fixture
-def user(db_session):
-    user = User(name="Тест", email="test@example.com")
-    db_session.add(user)
-    db_session.flush()
-    return user
+def three_apps(client, application_payload):
+    return [client.post("/applications", json=application_payload | {"customer_name": name}).json()
+            for name in ("Max", "Mosk", "user")]
 
-
-@pytest.fixture
-def event(db_session):
-    event = Event(title="Тестовое событие", seats_left=2)
-    db_session.add(event)
-    db_session.flush()
-    return event

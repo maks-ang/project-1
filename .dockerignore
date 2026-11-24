@@ -4,7 +4,4 @@ __pycache__
 .pytest_cache
 .idea
 .env
-Dockerfile.old
-compose.old
 tests
-applications.json
